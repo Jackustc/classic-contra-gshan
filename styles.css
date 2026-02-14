@@ -77,7 +77,7 @@ button {
 .controls {
   margin-top: 8px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 8px;
 }
 
@@ -87,6 +87,10 @@ button {
   font-weight: 700;
   border-width: 2px;
   touch-action: manipulation;
+}
+
+.controls button[data-action="bigshoot"] {
+  background: #ffe183;
 }
 
 .help {
@@ -110,5 +114,9 @@ button {
   .controls button {
     min-height: 88px;
     font-size: 1.9rem;
+  }
+
+  .controls button[data-action="bigshoot"] {
+    grid-column: 1 / -1;
   }
 }

@@ -4,6 +4,7 @@ const ctx = canvas.getContext("2d");
 const scoreEl = document.getElementById("score");
 const highScoreEl = document.getElementById("high-score");
 const deathsEl = document.getElementById("deaths");
+const megaStatusEl = document.getElementById("mega-status");
 const statusEl = document.getElementById("status");
 const playerNameInput = document.getElementById("player-name");
 const setPlayerBtn = document.getElementById("set-player-btn");
@@ -21,6 +22,7 @@ const PLAYER_NAME_KEY = "contra_player_name_v1";
 const HIGH_SCORE_KEY = "contra_high_score_v1";
 const STAR_COUNT = 90;
 const TREE_COUNT = 36;
+const MEGA_COOLDOWN_FRAMES = 600;
 const stars = [];
 const PLAYER_SPRITE = [
   "................",
@@ -82,6 +84,8 @@ const state = {
   enemies: [],
   enemySpawnTimer: 0,
   respawnTimer: 0,
+  megaCooldown: 0,
+  megaFlash: 0,
   lastTs: 0,
 };
 
@@ -139,6 +143,8 @@ function restartGame() {
   state.enemies = [];
   state.enemySpawnTimer = 0;
   state.respawnTimer = 0;
+  state.megaCooldown = 0;
+  state.megaFlash = 0;
   state.paused = false;
   state.player = createPlayer();
   state.lastTs = 0;
@@ -179,6 +185,29 @@ function shoot() {
     vx: dir * 8.5,
   });
   state.player.shootCooldown = 12;
+}
+
+function bigShoot() {
+  if (state.megaCooldown > 0) {
+    return;
+  }
+  const left = state.cameraX - 10;
+  const right = state.cameraX + canvas.width + 10;
+  let killed = 0;
+  const survivors = [];
+  for (const e of state.enemies) {
+    if (e.x + e.w >= left && e.x <= right) {
+      killed += 1;
+    } else {
+      survivors.push(e);
+    }
+  }
+  state.enemies = survivors;
+  if (killed > 0) {
+    state.score += killed * 100;
+  }
+  state.megaCooldown = MEGA_COOLDOWN_FRAMES;
+  state.megaFlash = 10;
 }
 
 function killPlayer() {
@@ -271,6 +300,13 @@ function handleCollisions() {
 function update() {
   if (state.paused) {
     return;
+  }
+
+  if (state.megaCooldown > 0) {
+    state.megaCooldown -= 1;
+  }
+  if (state.megaFlash > 0) {
+    state.megaFlash -= 1;
   }
 
   if (!state.player) {
@@ -373,6 +409,11 @@ function drawBackground() {
     ctx.fillRect(x + 1, GROUND_Y + 2, 6, 4);
     ctx.fillRect(x + 26, GROUND_Y + 14, 5, 4);
   }
+
+  if (state.megaFlash > 0) {
+    ctx.fillStyle = "rgba(255, 255, 220, 0.35)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
 }
 
 function drawPixelSprite(x, y, sprite, palette, scale, facing) {
@@ -452,6 +493,11 @@ function renderHud() {
   scoreEl.textContent = String(state.score);
   highScoreEl.textContent = String(state.highScore);
   deathsEl.textContent = String(state.deaths);
+  if (state.megaCooldown <= 0) {
+    megaStatusEl.textContent = "Ready";
+  } else {
+    megaStatusEl.textContent = `${Math.ceil(state.megaCooldown / 60)}s`;
+  }
   statusEl.textContent = state.paused ? "Paused" : "Running";
   pauseBtn.textContent = state.paused ? "Resume" : "Pause";
 }
@@ -490,6 +536,8 @@ function handleAction(action, pressed) {
     jump();
   } else if (action === "shoot" && pressed) {
     shoot();
+  } else if (action === "bigshoot" && pressed) {
+    bigShoot();
   }
 }
 
@@ -508,6 +556,9 @@ function bindKeyboard() {
     } else if (key === "j") {
       event.preventDefault();
       handleAction("shoot", true);
+    } else if (key === "k") {
+      event.preventDefault();
+      handleAction("bigshoot", true);
     } else if (key === "p") {
       event.preventDefault();
       state.paused = !state.paused;
