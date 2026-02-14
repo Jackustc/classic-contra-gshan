@@ -1,0 +1,114 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #efefef;
+  color: #1a1a1a;
+}
+
+.app {
+  max-width: 980px;
+  margin: 10px auto;
+  padding: 10px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 1.4rem;
+}
+
+.topbar {
+  border: 1px solid #cfcfcf;
+  background: #fff;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.player-row input {
+  flex: 1;
+  min-width: 140px;
+  border: 1px solid #999;
+  background: #fff;
+  color: #1a1a1a;
+  padding: 8px 10px;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 0.92rem;
+  margin-bottom: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  border: 1px solid #999;
+  background: #fff;
+  color: #1a1a1a;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+#game {
+  width: 100%;
+  max-width: 960px;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border: 1px solid #999;
+  background: #7fb7ff;
+  display: block;
+}
+
+.controls {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.controls button {
+  min-height: 72px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border-width: 2px;
+  touch-action: manipulation;
+}
+
+.help {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 720px) {
+  .app {
+    padding: 8px;
+  }
+
+  .player-row {
+    flex-wrap: wrap;
+  }
+
+  .controls {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .controls button {
+    min-height: 88px;
+    font-size: 1.9rem;
+  }
+}

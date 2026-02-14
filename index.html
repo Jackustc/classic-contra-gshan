@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Classic Contra - Single Player</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <h1>Classic Contra</h1>
+      <section class="topbar">
+        <div class="player-row">
+          <label for="player-name">Player</label>
+          <input id="player-name" type="text" maxlength="20" placeholder="Enter name" />
+          <button id="set-player-btn" type="button">Set</button>
+        </div>
+        <div class="stats">
+          <span>Name: <strong id="current-player">Player</strong></span>
+          <span>Score: <strong id="score">0</strong></span>
+          <span>High Score: <strong id="high-score">0</strong></span>
+          <span>Deaths: <strong id="deaths">0</strong></span>
+          <span>Status: <strong id="status">Running</strong></span>
+        </div>
+        <div class="actions">
+          <button id="restart-btn" type="button">Restart</button>
+          <button id="pause-btn" type="button">Pause</button>
+        </div>
+      </section>
+
+      <canvas id="game" width="960" height="540" aria-label="Contra game"></canvas>
+
+      <section class="controls" aria-label="Mobile controls">
+        <button data-action="left" type="button">◀</button>
+        <button data-action="right" type="button">▶</button>
+        <button data-action="jump" type="button">Jump</button>
+        <button data-action="shoot" type="button">Shoot</button>
+      </section>
+
+      <p class="help">Keyboard: A/D or Arrows to move, W/↑/Space to jump, J to shoot, P to pause.</p>
+    </main>
+    <script src="./contra.js"></script>
+  </body>
+</html>
