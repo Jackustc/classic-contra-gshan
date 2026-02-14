@@ -19,6 +19,19 @@ const MAX_PLAYER_NAME = 20;
 
 const PLAYER_NAME_KEY = "contra_player_name_v1";
 const HIGH_SCORE_KEY = "contra_high_score_v1";
+const STAR_COUNT = 90;
+const TREE_COUNT = 36;
+const stars = [];
+
+for (let i = 0; i < STAR_COUNT; i += 1) {
+  // Deterministic pseudo-random distribution to keep background stable.
+  const t = (i * 137.13) % 997;
+  stars.push({
+    x: (t * 37) % WORLD_WIDTH,
+    y: 20 + ((t * 53) % 200),
+    r: 1 + ((t * 7) % 2),
+  });
+}
 
 const state = {
   playerName: "Player",
@@ -248,16 +261,71 @@ function update() {
 }
 
 function drawBackground() {
-  ctx.fillStyle = "#84b9ff";
+  ctx.fillStyle = "#02040c";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = "#95ca66";
-  ctx.fillRect(0, GROUND_Y - 12, canvas.width, canvas.height - GROUND_Y + 12);
+  // Stars
+  ctx.fillStyle = "#d8d8d8";
+  for (const s of stars) {
+    const sx = s.x - state.cameraX * 0.2;
+    const wrappedX = ((sx % (canvas.width + 100)) + (canvas.width + 100)) % (canvas.width + 100) - 50;
+    ctx.fillRect(wrappedX, s.y, s.r, s.r);
+  }
 
-  ctx.fillStyle = "#5d8f3f";
-  for (let i = 0; i < 30; i += 1) {
-    const x = ((i * 180 - (state.cameraX * 0.6)) % (canvas.width + 220)) - 40;
-    ctx.fillRect(x, GROUND_Y - 60, 20, 48);
+  // Moon / bright mountain highlight
+  ctx.fillStyle = "#e6e6e6";
+  ctx.beginPath();
+  ctx.moveTo(60, 170);
+  ctx.lineTo(130, 40);
+  ctx.lineTo(210, 170);
+  ctx.closePath();
+  ctx.fill();
+
+  // Far mountain range
+  ctx.fillStyle = "#203322";
+  ctx.beginPath();
+  ctx.moveTo(-40, GROUND_Y - 140);
+  ctx.lineTo(80, GROUND_Y - 230);
+  ctx.lineTo(190, GROUND_Y - 130);
+  ctx.lineTo(330, GROUND_Y - 250);
+  ctx.lineTo(480, GROUND_Y - 125);
+  ctx.lineTo(620, GROUND_Y - 240);
+  ctx.lineTo(780, GROUND_Y - 120);
+  ctx.lineTo(canvas.width + 60, GROUND_Y - 120);
+  ctx.lineTo(canvas.width + 60, GROUND_Y);
+  ctx.lineTo(-40, GROUND_Y);
+  ctx.closePath();
+  ctx.fill();
+
+  // Jungle tree trunks and canopy
+  for (let i = 0; i < TREE_COUNT; i += 1) {
+    const base = i * 180;
+    const x = base - state.cameraX * 0.55;
+    const sx = ((x % (canvas.width + 220)) + (canvas.width + 220)) % (canvas.width + 220) - 110;
+    const trunkH = 110 + (i % 4) * 18;
+    ctx.fillStyle = "#2f4e21";
+    ctx.fillRect(sx + 20, GROUND_Y - trunkH, 14, trunkH);
+    ctx.fillRect(sx + 40, GROUND_Y - trunkH + 12, 10, trunkH - 12);
+    ctx.fillStyle = "#5f9f35";
+    ctx.fillRect(sx - 8, GROUND_Y - trunkH - 18, 70, 18);
+  }
+
+  // Ground top grass strip
+  ctx.fillStyle = "#86b63f";
+  ctx.fillRect(0, GROUND_Y - 16, canvas.width, 16);
+  ctx.fillStyle = "#4d7f26";
+  for (let x = 0; x < canvas.width; x += 26) {
+    ctx.fillRect(x + ((x / 13) % 3), GROUND_Y - 20, 10, 4);
+  }
+
+  // Rocky terrain
+  for (let x = -40; x < canvas.width + 80; x += 56) {
+    ctx.fillStyle = "#9d8c3e";
+    ctx.fillRect(x, GROUND_Y, 56, canvas.height - GROUND_Y);
+    ctx.fillStyle = "#6f5f2e";
+    ctx.fillRect(x + 5, GROUND_Y + 8, 18, 10);
+    ctx.fillRect(x + 28, GROUND_Y + 20, 20, 8);
+    ctx.fillRect(x + 12, GROUND_Y + 36, 30, 9);
   }
 }
 
@@ -267,10 +335,40 @@ function drawPlayer() {
   }
   const p = state.player;
   const sx = p.x - state.cameraX;
-  ctx.fillStyle = "#1d3b8f";
-  ctx.fillRect(sx, p.y, p.w, p.h);
+  // Body (closer to Contra palette)
+  ctx.fillStyle = "#2a57c7";
+  ctx.fillRect(sx + 8, p.y + 18, 16, 18);
+  ctx.fillStyle = "#f4842d";
+  ctx.fillRect(sx + 7, p.y + 36, 8, 20);
+  ctx.fillRect(sx + 17, p.y + 36, 8, 20);
   ctx.fillStyle = "#f4cfa1";
-  ctx.fillRect(sx + 8, p.y + 6, 16, 12);
+  ctx.fillRect(sx + 8, p.y + 6, 14, 12);
+  ctx.fillStyle = "#3e2a1d";
+  ctx.fillRect(sx + 9, p.y + 2, 12, 5);
+
+  // Gun
+  const gunX = p.facing > 0 ? sx + 24 : sx - 8;
+  ctx.fillStyle = "#2a2a2a";
+  ctx.fillRect(gunX, p.y + 21, 12, 4);
+  ctx.fillRect(gunX + (p.facing > 0 ? 10 : -2), p.y + 20, 4, 2);
+
+  // Arm
+  ctx.fillStyle = "#f4cfa1";
+  ctx.fillRect(p.facing > 0 ? sx + 19 : sx + 1, p.y + 21, 7, 5);
+
+  // Boots
+  ctx.fillStyle = "#2f2f2f";
+  ctx.fillRect(sx + 6, p.y + 54, 10, 4);
+  ctx.fillRect(sx + 16, p.y + 54, 10, 4);
+
+  // Shoulder strap
+  ctx.fillStyle = "#b22f2f";
+  ctx.fillRect(sx + 10, p.y + 22, 10, 3);
+
+  // Debug body frame removed: keep width/height used for collisions only.
+  if (false) {
+    ctx.strokeRect(sx, p.y, p.w, p.h);
+  }
 }
 
 function drawBullets() {
@@ -283,10 +381,16 @@ function drawBullets() {
 function drawEnemies() {
   for (const e of state.enemies) {
     const sx = e.x - state.cameraX;
-    ctx.fillStyle = "#b3342d";
-    ctx.fillRect(sx, e.y, e.w, e.h);
-    ctx.fillStyle = "#1a1a1a";
-    ctx.fillRect(sx + 8, e.y + 6, 18, 10);
+    ctx.fillStyle = "#cf3a2d";
+    ctx.fillRect(sx + 8, e.y + 18, 16, 16);
+    ctx.fillStyle = "#3a8f33";
+    ctx.fillRect(sx + 8, e.y + 34, 8, 14);
+    ctx.fillRect(sx + 16, e.y + 34, 8, 14);
+    ctx.fillStyle = "#f0cf9d";
+    ctx.fillRect(sx + 10, e.y + 8, 12, 10);
+    ctx.fillStyle = "#1e1e1e";
+    ctx.fillRect(sx + 5, e.y + 23, 8, 3);
+    ctx.fillRect(sx + 22, e.y + 23, 8, 3);
   }
 }
 
