@@ -22,6 +22,42 @@ const HIGH_SCORE_KEY = "contra_high_score_v1";
 const STAR_COUNT = 90;
 const TREE_COUNT = 36;
 const stars = [];
+const PLAYER_SPRITE = [
+  "................",
+  "....rrrrrr......",
+  "...rrhhhhrr.....",
+  "...rhhsshhrr....",
+  "...rhhsshhhr....",
+  "...rrhsshhrr....",
+  "....rrrrrrrr....",
+  "...ttttbbtt.....",
+  "..ttttbbbbtt....",
+  "..tttbbbbbbt....",
+  "..tttbbbbbbt....",
+  "..tttbbbbbbt....",
+  "...ttbbbbtt.....",
+  "...ttbbbbtt.....",
+  "..ss.ttbb..ss...",
+  "..ss..tt...ss...",
+  "..pp..pp...pp...",
+  ".ppp..pp..ppp...",
+  ".pp....p..pp....",
+  ".pp....p..pp....",
+  "..k....k...k....",
+  "..k....k...k....",
+  "................",
+  "................",
+];
+
+const PLAYER_COLORS = {
+  r: "#d43b2f", // headband/hair red
+  h: "#402519", // dark hair shadow
+  s: "#f4cf9f", // skin
+  t: "#2d5fd6", // blue shirt
+  b: "#223d8e", // dark blue shade
+  p: "#4d49d8", // pants
+  k: "#1c1c1c", // boots
+};
 
 for (let i = 0; i < STAR_COUNT; i += 1) {
   // Deterministic pseudo-random distribution to keep background stable.
@@ -310,23 +346,55 @@ function drawBackground() {
     ctx.fillRect(sx - 8, GROUND_Y - trunkH - 18, 70, 18);
   }
 
+  // Mid bushes
+  ctx.fillStyle = "#6ea92d";
+  for (let x = -20; x < canvas.width + 40; x += 38) {
+    ctx.fillRect(x, GROUND_Y - 48, 34, 18);
+    ctx.fillRect(x + 6, GROUND_Y - 60, 26, 12);
+  }
+
   // Ground top grass strip
-  ctx.fillStyle = "#86b63f";
+  ctx.fillStyle = "#8fc82f";
   ctx.fillRect(0, GROUND_Y - 16, canvas.width, 16);
-  ctx.fillStyle = "#4d7f26";
+  ctx.fillStyle = "#4d8a1f";
   for (let x = 0; x < canvas.width; x += 26) {
     ctx.fillRect(x + ((x / 13) % 3), GROUND_Y - 20, 10, 4);
   }
 
   // Rocky terrain
   for (let x = -40; x < canvas.width + 80; x += 56) {
-    ctx.fillStyle = "#9d8c3e";
+    ctx.fillStyle = "#8f7a2a";
     ctx.fillRect(x, GROUND_Y, 56, canvas.height - GROUND_Y);
-    ctx.fillStyle = "#6f5f2e";
+    ctx.fillStyle = "#d39e23";
     ctx.fillRect(x + 5, GROUND_Y + 8, 18, 10);
     ctx.fillRect(x + 28, GROUND_Y + 20, 20, 8);
     ctx.fillRect(x + 12, GROUND_Y + 36, 30, 9);
+    ctx.fillStyle = "#4d3f13";
+    ctx.fillRect(x + 1, GROUND_Y + 2, 6, 4);
+    ctx.fillRect(x + 26, GROUND_Y + 14, 5, 4);
   }
+}
+
+function drawPixelSprite(x, y, sprite, palette, scale, facing) {
+  const w = sprite[0].length;
+  ctx.save();
+  if (facing < 0) {
+    ctx.translate(x + w * scale, y);
+    ctx.scale(-1, 1);
+    x = 0;
+    y = 0;
+  }
+  for (let row = 0; row < sprite.length; row += 1) {
+    for (let col = 0; col < w; col += 1) {
+      const key = sprite[row][col];
+      if (key === ".") {
+        continue;
+      }
+      ctx.fillStyle = palette[key];
+      ctx.fillRect(x + col * scale, y + row * scale, scale, scale);
+    }
+  }
+  ctx.restore();
 }
 
 function drawPlayer() {
@@ -335,40 +403,17 @@ function drawPlayer() {
   }
   const p = state.player;
   const sx = p.x - state.cameraX;
-  // Body (closer to Contra palette)
-  ctx.fillStyle = "#2a57c7";
-  ctx.fillRect(sx + 8, p.y + 18, 16, 18);
-  ctx.fillStyle = "#f4842d";
-  ctx.fillRect(sx + 7, p.y + 36, 8, 20);
-  ctx.fillRect(sx + 17, p.y + 36, 8, 20);
-  ctx.fillStyle = "#f4cfa1";
-  ctx.fillRect(sx + 8, p.y + 6, 14, 12);
-  ctx.fillStyle = "#3e2a1d";
-  ctx.fillRect(sx + 9, p.y + 2, 12, 5);
+  const px = sx;
+  const py = p.y + 6;
+  drawPixelSprite(px, py, PLAYER_SPRITE, PLAYER_COLORS, 2, p.facing);
 
-  // Gun
-  const gunX = p.facing > 0 ? sx + 24 : sx - 8;
-  ctx.fillStyle = "#2a2a2a";
-  ctx.fillRect(gunX, p.y + 21, 12, 4);
-  ctx.fillRect(gunX + (p.facing > 0 ? 10 : -2), p.y + 20, 4, 2);
-
-  // Arm
-  ctx.fillStyle = "#f4cfa1";
-  ctx.fillRect(p.facing > 0 ? sx + 19 : sx + 1, p.y + 21, 7, 5);
-
-  // Boots
-  ctx.fillStyle = "#2f2f2f";
-  ctx.fillRect(sx + 6, p.y + 54, 10, 4);
-  ctx.fillRect(sx + 16, p.y + 54, 10, 4);
-
-  // Shoulder strap
-  ctx.fillStyle = "#b22f2f";
-  ctx.fillRect(sx + 10, p.y + 22, 10, 3);
-
-  // Debug body frame removed: keep width/height used for collisions only.
-  if (false) {
-    ctx.strokeRect(sx, p.y, p.w, p.h);
-  }
+  // Rifle aligned to sprite stance.
+  const gunBaseX = p.facing > 0 ? px + 24 : px - 8;
+  ctx.fillStyle = "#121212";
+  ctx.fillRect(gunBaseX, py + 20, 14, 4);
+  ctx.fillRect(gunBaseX + (p.facing > 0 ? 12 : -2), py + 19, 4, 2);
+  ctx.fillStyle = "#8a8a8a";
+  ctx.fillRect(gunBaseX + 4, py + 21, 4, 2);
 }
 
 function drawBullets() {
